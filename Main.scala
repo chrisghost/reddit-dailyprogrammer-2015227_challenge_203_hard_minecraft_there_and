@@ -1,15 +1,22 @@
 import scala.collection.mutable.ArrayBuffer
 
 object Challenge203 extends App {
-  val m = Map(20, 20, 10)
+  val m = Map(1, 5, 5)
   m.generate
 
   m.printMap
+
+  println("DWDWQDQW")
+
+  while(m.applyGravity) {
+    m.printMap
+    Console.readLine
+  }
 }
 
 case class Map(w: Int, h: Int, d: Int) {
   val AIR = "."
-  val DIRT = "▓"
+  val DIRT = "▒"
   val SAND = "░"
   val LAVA = "≈"
   val GOAL = "★"
@@ -31,12 +38,40 @@ case class Map(w: Int, h: Int, d: Int) {
     _map(w-1)(h-1)(d-1) = GOAL
   }
 
+  def isInBounds(x: Int, y: Int, z: Int) = x >= 0 && x < w && y >= 0 && y < h && z >= 0 && z < d
+  def isAir(x: Int, y: Int, z: Int) = isInBounds(x, y, z) && _map(x)(y)(z) == AIR
+  def applyGravity = {
+    (for {
+      x <- Range(0, w)
+      y <- Range(0, h)
+      z <- Range(0, d)
+    } yield {
+      _map(x)(y)(z) match {
+        case e @ (LAVA | SAND) if(isAir(x, y, z+1)) => {
+          _map(x)(y)(z) = AIR
+          _map(x)(y)(z+1) = e
+          true
+        }
+        case _ => false
+      }
+    }).toList.contains(true)
+  }
+
   def printMap {
     _map.map { slice =>
       Range(0, d).map { z =>
+        print(Console.BLACK)
         Range(0, h).map { y =>
-          print( slice(y)(z) )
+          slice(y)(z) match {
+            case AIR => print(Console.CYAN_B)
+            case DIRT => print(Console.GREEN_B)
+            case SAND => print(Console.YELLOW_B)
+            case LAVA => print(Console.RED_B)
+            case GOAL => print(Console.BLUE_B)
+          }
+          print(slice(y)(z))
         }
+        print(Console.RESET)
         println()
       }
       println("----------------------------")
