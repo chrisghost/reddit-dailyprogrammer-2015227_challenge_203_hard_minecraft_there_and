@@ -1,12 +1,10 @@
 import scala.collection.mutable.ArrayBuffer
 
 object Challenge203 extends App {
-  val m = Map(1, 5, 5)
+  val m = Map(100, 100, 10)
   m.generate
 
   m.printMap
-
-  println("DWDWQDQW")
 
   while(m.applyGravity) {
     m.printMap
