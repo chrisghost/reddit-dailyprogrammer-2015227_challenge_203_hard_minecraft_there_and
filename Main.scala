@@ -55,6 +55,28 @@ case class Map(w: Int, h: Int, d: Int) {
     }).toList.contains(true)
   }
 
+  def neighbors(n: Node) = {
+    List(
+      P3(1, 0, 0),
+      P3(0, 1, 0),
+      P3(0, 0, 1),
+      P3(-1, 0, 0),
+      P3(0, -1, 0),
+      P3(0, 0, -1)
+    ).map ( _+n.pos )
+    .filter(isInBounds(_))
+  }
+
+  def getNodes = {
+    for {
+      x <- Range(0, w)
+      y <- Range(0, h)
+      z <- Range(1, d)
+    } yield {
+      Node(P3(x,y,z))
+    }
+  }
+
   def printMap {
     _map.map { slice =>
       Range(0, d).map { z =>
