@@ -1,9 +1,11 @@
+import Challenge203._
+
 object Dijkstra {
   def findPath(map: World, strt: Node, end: Node) = {
 
     val wMap = map.getNodes groupBy {
       e => map.get(e.pos).map{i: String =>
-        i == map.LAVA
+        i == LAVA
       }.getOrElse(false)
     }
 
@@ -72,13 +74,18 @@ object Dijkstra {
     nodes
       .filter { n => poss.contains(n.pos) }
       //.filterNot { e => lavas.contains(e.pos) }
-      .filterNot { e => map.get(e.pos+P3(0,0,1)).map(e => e == map.AIR || e == map.LAVA).getOrElse(false) }
+      .filterNot { e => map.get(e.pos+P3(0,0,1)).map(e => e == AIR || e == LAVA).getOrElse(false) }
   }
 }
 
 case class P3(x: Int, y: Int, z: Int) {
   def +(p:P3) = P3(x+p.x, y+p.y, z+p.z)
   def -(p:P3) = P3(x+p.x, y+p.y, z+p.z)
+  def dst(p:P3) = Math.sqrt(
+    Math.pow(x-p.x,2) +
+    Math.pow(y-p.y,2) +
+    Math.pow(z-p.z,2)
+  )
 }
 case class Node(pos: P3, dist: Int = Int.MaxValue, prev: Option[Node] = None)
 {
