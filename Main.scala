@@ -1,24 +1,32 @@
 import scala.collection.mutable.ArrayBuffer
 
 object Challenge203 extends App {
-  val m = Map(100, 100, 10)
+  val size = P3(1, 10, 10)
+
+  val m = World(size)
   m.generate
 
-  m.printMap
+  m.printWorld
 
   while(m.applyGravity) {
-    m.printMap
-    Console.readLine
   }
+  m.printWorld
+
+  val path = Dijkstra.findPath(m, Node(P3(0,0,0)), Node(P3(size.x-1,size.y-1,size.z-1)))
+  println(path)
+  m.printWorld(path)
 }
 
-case class Map(w: Int, h: Int, d: Int) {
-  val AIR = "."
+case class World(size: P3) {
+  val AIR = "-"
   val DIRT = "▒"
   val SAND = "░"
   val LAVA = "≈"
   val GOAL = "★"
-  val possiblesBlocks = List(AIR, DIRT, SAND, LAVA)
+  val possiblesBlocks = List(AIR, DIRT, SAND, LAVA) ++ List(DIRT, SAND) ++ List(DIRT, SAND) ++ List(DIRT, SAND)
+  //val possiblesBlocks = List(DIRT, SAND, LAVA) ++ List(DIRT, SAND)
+
+  val P3(w, h, d) = size
 
   val _map = scala.collection.mutable.ArrayBuffer.fill(w, h, d)(AIR)
 
@@ -36,8 +44,14 @@ case class Map(w: Int, h: Int, d: Int) {
     _map(w-1)(h-1)(d-1) = GOAL
   }
 
+  def get(p: P3) = if(isInBounds(p.x, p.y, p.z)) Some(_map(p.x)(p.y)(p.z)) else None
+
+  def isInBounds(p: P3): Boolean = isInBounds(p.x, p.y, p.z)
   def isInBounds(x: Int, y: Int, z: Int) = x >= 0 && x < w && y >= 0 && y < h && z >= 0 && z < d
+
+  def isAir(p: P3): Boolean = isAir(p.x, p.y, p.z)
   def isAir(x: Int, y: Int, z: Int) = isInBounds(x, y, z) && _map(x)(y)(z) == AIR
+  def isTraversable(p: P3) =  isAir(p) || get(p).map(e => e == SAND || e == DIRT || e == GOAL).getOrElse(false)
   def applyGravity = {
     (for {
       x <- Range(0, w)
@@ -55,47 +69,44 @@ case class Map(w: Int, h: Int, d: Int) {
     }).toList.contains(true)
   }
 
-  def neighbors(n: Node) = {
-    List(
-      P3(1, 0, 0),
-      P3(0, 1, 0),
-      P3(0, 0, 1),
-      P3(-1, 0, 0),
-      P3(0, -1, 0),
-      P3(0, 0, -1)
-    ).map ( _+n.pos )
-    .filter(isInBounds(_))
-  }
-
-  def getNodes = {
-    for {
+  def getNodes: List[Node] = {
+    (for {
       x <- Range(0, w)
       y <- Range(0, h)
       z <- Range(1, d)
     } yield {
       Node(P3(x,y,z))
-    }
+    }).toList
   }
 
-  def printMap {
-    _map.map { slice =>
+  def printWorld: Unit= printWorld(List())
+  def printWorld(path: List[P3]) {
+    var sbuf = new scala.collection.mutable.StringBuilder("")
+    Range(0, w).map { x =>
       Range(0, d).map { z =>
-        print(Console.BLACK)
         Range(0, h).map { y =>
-          slice(y)(z) match {
-            case AIR => print(Console.CYAN_B)
-            case DIRT => print(Console.GREEN_B)
-            case SAND => print(Console.YELLOW_B)
-            case LAVA => print(Console.RED_B)
-            case GOAL => print(Console.BLUE_B)
-          }
-          print(slice(y)(z))
+          sbuf ++= (Console.BLACK)
+
+          path.find(_ == P3(x, y, z)).map(e => sbuf ++= (Console.WHITE))
+          //.getOrElse {
+            _map(x)(y)(z) match {
+              case AIR => sbuf ++= (Console.CYAN_B)
+              case DIRT => sbuf ++= (Console.GREEN_B)
+              case SAND => sbuf ++= (Console.YELLOW_B)
+              case LAVA => sbuf ++= (Console.RED_B)
+              case GOAL => sbuf ++= (Console.BLUE_B)
+            }
+          //}
+          sbuf ++= (_map(x)(y)(z))
         }
-        print(Console.RESET)
-        println()
+        sbuf ++= (Console.RESET)
+        sbuf ++= "\n";
       }
-      println("----------------------------")
+      //println("----------------------------")
     }
+
+    println(sbuf)
+    Thread.sleep(50)
   }
 }
 
